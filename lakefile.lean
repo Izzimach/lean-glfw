@@ -9,31 +9,45 @@ def winSDKDirectory : FilePath := "c:\\Program Files (x86)\\Windows Kits\\10\\Li
 
 def buildDir := defaultBuildDir
 def cDir : FilePath := "csrc"
-def ffiSrc := cDir / "glfw_bindings.c"
+--def ffiSrc := cDir / "glfw_bindings.c"
 
 def glfwIncludeDir := glfwDir / "include"
+def gladLocalDir := "glad"
 def glfwLibDir := glfwDir / "lib-mingw-w64"
 def gdiFile := winSDKDirectory / "Gdi32.lib"
 
-def ffiOTarget (pkgDir : FilePath) : FileTarget :=
-  let oFile := pkgDir / buildDir / cDir / "ffi.o"
-  let srcTarget := inputFileTarget <| pkgDir / ffiSrc
+-- given a package dir and c source file, constructs a FileTarget that builds the
+-- corresponding .o file using the lean C compiler
+def ffiOTarget (pkgDir : FilePath) (ffiSrc : FilePath): FileTarget :=
+  let oFile := pkgDir / buildDir / cDir / (System.FilePath.withExtension ffiSrc "o")
+  let srcTarget := inputFileTarget <| pkgDir / cDir/ ffiSrc
+  let localIncludeDir := pkgDir / cDir / "include"
   fileTargetWithDep oFile srcTarget fun srcFile => do
-    compileO oFile srcFile #["-I", (← getLeanIncludeDir).toString, "-I", glfwIncludeDir.toString] "cc"
+    let compileOptions := #[
+                              "-I", (← getLeanIncludeDir).toString,
+                              "-I", glfwIncludeDir.toString,
+                              "-I", localIncludeDir.toString
+    ]
+    compileO oFile srcFile compileOptions "cc"
 
+-- a FileTarget to build the ffi lib from component c files
 def cLibTarget (pkgDir : FilePath) : FileTarget :=
   let libFile := pkgDir / buildDir / cDir / "libffi.a"
-  staticLibTarget libFile #[ffiOTarget pkgDir]
+  staticLibTarget libFile #[
+                            ffiOTarget pkgDir "glfw_ffi.c",
+                            ffiOTarget pkgDir "data_marshal.c",
+                            ffiOTarget pkgDir "glad.c"
+                            ]
 
-package «lean-glfw» (pkgDir) (args) {
+
+package GLFW (pkgDir) (args) {
   srcDir := "src"
 
-  --libRoots := #[`Ffi]
 
-  -- specify the c bindings as an additional target
+  -- specify the c binding library as an additional target
   moreLibTargets := #[cLibTarget pkgDir]
 
-  -- The final executable needs to link in glfw and gdi32
+  -- The final executable needs to link in glfw and gdi32 as well as the cLibTarget
   moreLinkArgs := #["-L", glfwLibDir.toString, "-lglfw3", gdiFile.toString]
 
 }

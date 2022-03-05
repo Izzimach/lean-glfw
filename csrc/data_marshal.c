@@ -22,6 +22,12 @@ static lean_external_class *get_opaqueptr_class()
   return g_opaqueptr_class;
 }
 
+extern lean_object *lean_mk_ptr(void *someptr)
+{
+      lean_external_class *opaqueptr_class = get_opaqueptr_class();
+      lean_object *packed = lean_alloc_external(opaqueptr_class, someptr);
+}
+
 extern lean_object *lean_mk_packptr(void *someptr)
 {
     if (someptr == NULL) {

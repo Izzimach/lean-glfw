@@ -56,8 +56,14 @@ static inline lean_object *lean_option_unwrap(lean_obj_arg a) {
 lean_object *lean_mk_packptr(void *someptr);
 
 /**
+ * Returns an opaque pointer to lean. Lean can't tell if it's null or not.
+ * Extract this with lean_get_external_data
+ */
+lean_object *lean_mk_ptr(void *someptr);
+
+/**
  * Unwrap an Option of an external object as data for some
- * or NULL for none. Unsafe.
+ * or NULL for none.
  */
 static inline void *lean_option_unpackptr(lean_obj_arg a) {
   if (lean_is_scalar(a)) {

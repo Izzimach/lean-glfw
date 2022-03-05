@@ -35,6 +35,7 @@ def cLibTarget (pkgDir : FilePath) : FileTarget :=
   let libFile := pkgDir / buildDir / cDir / "libffi.a"
   staticLibTarget libFile #[
                             ffiOTarget pkgDir "glfw_ffi.c",
+                            ffiOTarget pkgDir "opengl_ffi.c",
                             ffiOTarget pkgDir "data_marshal.c",
                             ffiOTarget pkgDir "glad.c"
                             ]

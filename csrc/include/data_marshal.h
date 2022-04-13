@@ -5,13 +5,15 @@
 
 #include <lean/lean.h>
 
-/** make a Unit return value */
+/** make a Unit return valueas an IO result.
+ *  For the many functions that return 'IO Unit' */
 static inline lean_obj_res lean_return_unit() {
   return lean_io_result_mk_ok(lean_box(0));
 }
 
 /*
-// These are from SDL.lean by Anders Christiansen Sørby:
+// These are Copyright 2021 by Anders Christiansen Sørby, from SDL.lean
+// under the MIT license:
 // - lean_option_unwrap (here as lean_option_unpackptr)
 // - lean_mk_option_some
 // - lean_mk_option_none
@@ -56,7 +58,7 @@ static inline lean_object *lean_option_unwrap(lean_obj_arg a) {
 lean_object *lean_mk_packptr(void *someptr);
 
 /**
- * Returns an opaque pointer to lean. Lean can't tell if it's null or not.
+ * Returns an opaque pointer to lean. Unlike lean_mk_packptr, Lean can't tell if it's null or not.
  * Extract this with lean_get_external_data
  */
 lean_object *lean_mk_ptr(void *someptr);
@@ -72,4 +74,21 @@ static inline void *lean_option_unpackptr(lean_obj_arg a) {
     lean_object *some_val = lean_ctor_get(a, 0);
     return lean_get_external_data(some_val);      
   }
+}
+
+static inline uint32_t lean_listlength(lean_obj_arg list) {
+    uint32_t elementCount = 0;  
+    
+    lean_object *current_element = list;
+    while (!lean_is_scalar(current_element)) {
+        // element is a "cons head tail" object, we'll ignore the head
+        //lean_object * head = lean_ctor_get(current_element, 0);
+        lean_object * tail = lean_ctor_get(current_element, 1);
+
+        // advance to next element
+        elementCount++;
+        current_element = tail;
+    }
+
+    return elementCount;
 }

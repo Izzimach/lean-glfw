@@ -74,8 +74,6 @@ lean_obj_res lean_glfw_terminate()
     return lean_return_unit();
 }
 
-
-
 // glfwGetFrameBufferSize : Window -> IO (Int * Int)
 //
 lean_obj_res lean_glfw_get_framebuffer_size(lean_obj_arg lw)

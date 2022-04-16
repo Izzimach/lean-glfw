@@ -480,12 +480,19 @@ lean_obj_res lean_opengl_programuniformmatrix4fv(uint64_t programID, uint32_t lo
         return lean_io_result_mk_error(lean_mk_io_user_error(lean_mk_string("Matrix data needs to be 16 floats in glProgramUniformMatrix4fv")));
     }
 
+    // lean FloatArray is actually doubles, so we need to convert to floats
+    GLfloat transferBuffer[16];
+    double *sourceData = (double *)lean_sarray_cptr(matrixData);
+    for (int ix=0; ix < 16; ix++) {
+        transferBuffer[ix] = sourceData[ix];
+    }
+    
     glProgramUniformMatrix4fv(
         (GLuint)programID,
         (GLint)location,
         1,
         false,
-        ((GLfloat*)lean_sarray_cptr(matrixData))
+        transferBuffer
     );
     return lean_return_unit();
 }

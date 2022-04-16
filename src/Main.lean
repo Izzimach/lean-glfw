@@ -35,7 +35,7 @@ partial def renderLoop : Int → Window → GLVertexArrayObject → GLProgramObj
 def vertexData := FloatArray.mk $ Array.mk [-0.5,-0.7,0.0, 0.5,-0.7,0.0, 0.0,0.68,0.0, 1,0,0]
 
 def vertexShader := [
-"#version 440 core
+"#version 450 core
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 layout (location=0) in vec3 position;
@@ -54,7 +54,7 @@ layout (location=0) in vec3 position;
 ]
 
 def fragmentShader := [
-"#version 440
+"#version 450
 
 //uniform sampler2D tex;
 //in vec2 texCoordFrag;

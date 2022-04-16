@@ -25,9 +25,11 @@ lean_obj_res lean_glfw_init()
 //
 lean_obj_res lean_glfw_create_window()
 {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (window == NULL) {
-        return lean_io_result_mk_error(lean_mk_io_user_error(lean_mk_string("Error call glfwCreateWindow")));
+        return lean_io_result_mk_error(lean_mk_io_user_error(lean_mk_string("Error calling glfwCreateWindow")));
     }
     return lean_io_result_mk_ok(lean_mk_ptr(window));
 }

@@ -3,6 +3,7 @@ import GLFW.OpenGL
 
 open GLFW
 open OpenGL
+open BufferStorageFlags
 
 def glfwWrap (wrapped : Window → IO Unit) : ExceptT String IO Unit := do
     glfwInit
@@ -17,17 +18,19 @@ def glfwWrap (wrapped : Window → IO Unit) : ExceptT String IO Unit := do
     finally
         glfwTerminate
 
-partial def renderLoop : Int → Window → IO Unit :=
-  fun c w => do
+partial def renderLoop : Int → Window → GLVertexArrayObject → GLProgramObject → IO Unit :=
+  fun c w vao prog => do
     let bits := glClearBits [ClearBufferEnum.ClearColorBuffer, ClearBufferEnum.ClearDepthBuffer]
     glClear bits
+    glBindVertexArray vao
+    glUseProgram prog
     glDrawArrays GLDrawMode.GLTriangles 0 3
     glfwSwapBuffers w
     glfwPollEvents
     let terminate <- glfwWindowShouldClose w
     if (terminate || c < 0)
     then return ()
-    else renderLoop (c-1) w
+    else renderLoop (c-1) w vao prog
 
 def vertexData := FloatArray.mk $ Array.mk [-0.5,-0.7,0.0, 0.5,-0.7,0.0, 0.0,0.68,0.0, 1,0,0]
 
@@ -78,14 +81,11 @@ def startRender : Window → IO Unit :=
     let ⟨width,height⟩ <- glfwGetFramebufferSize w
     glViewport 0 0 width height
     glClearColor 1.0 0.0 0.0 0.0
-    let buffers <- OpenGL.glGenBuffers 1
-    IO.println ("buffers: " ++ toString buffers)
+    let buffers <- OpenGL.glCreateBuffers 1
     match (buffers.get? 0) with
     | Option.none => return ()
     | Option.some vBuf => do
-        glBindBuffer BufferTarget.ArrayBuffer vBuf
-        glBufferDataFloats BufferTarget.ArrayBuffer vertexData BufferFrequency.StaticBuffer BufferAccessPattern.DrawBufferAccess
-        glBindBuffer BufferTarget.ArrayBuffer (0 : UInt32)
+        glNamedBufferStorage_Floats vBuf vertexData [GLMapWrite, GLDynamicStorage]
 
         let fshaderID <- buildShader ShaderType.VertexShader vertexShader
         let vshaderID <- buildShader ShaderType.FragmentShader fragmentShader
@@ -93,19 +93,17 @@ def startRender : Window → IO Unit :=
         glAttachShader programID fshaderID
         glAttachShader programID vshaderID
         glLinkProgram programID
-        glUseProgram programID
+        --glUseProgram programID
 
-        let vaos <- glGenVertexArrays 1
+        let vaos <- glCreateVertexArrays 1
+        IO.println ("vaos=" ++ toString vaos)
         match (vaos.get? 0) with
         | Option.none => return ()
         | Option.some vao => do
-            glBindVertexArray vao
-            glBindBuffer BufferTarget.ArrayBuffer vBuf
-            
-            glEnableVertexAttribArray 0
-            glVertexAttribFormat 0 3 GLDataType.GLFloat false 0
-            glVertexAttribBinding 0 0
-            glBindVertexBuffer 0 vBuf 0 12
+            glVertexArrayAttribBinding vao 0 0
+            glVertexArrayVertexBuffer vao 0 vBuf 0 12
+            glEnableVertexArrayAttrib vao 0
+            glVertexArrayAttribFormat vao 0 3 GLDataType.GLFloat false 0
 
             --let matLocation <- glGetUniformLocation programID "modelViewMatrix"
             --IO.println ("modelView location: " ++ toString matLocation)
@@ -117,7 +115,7 @@ def startRender : Window → IO Unit :=
             --glProgramUniformMatrix4fv programID matLocation mvMatrix
             --glProgramUniformMatrix4fv programID projLocation pjMatrix
 
-            renderLoop 100 w
+            renderLoop 100 w vao programID
 
             glDeleteVertexArrays vaos
             glDeleteProgram programID

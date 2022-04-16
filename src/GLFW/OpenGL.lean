@@ -39,8 +39,8 @@ def GLBufferObject := UInt32
 instance : ToString GLBufferObject where
     toString x := let (y : UInt32) := x; "GLBuffer: " ++ toString y
 
-@[extern "lean_opengl_glgenbuffers"]
-constant glGenBuffers : (count : UInt32) → IO (List GLBufferObject)
+@[extern "lean_opengl_glcreatebuffers"]
+constant glCreateBuffers : (count : UInt32) → IO (List GLBufferObject)
 
 @[extern "lean_opengl_gldeletebuffers"]
 constant glDeleteBuffers : List GLBufferObject → IO Unit
@@ -78,6 +78,27 @@ constant glBufferDataDoubles : BufferTarget → FloatArray → BufferFrequency �
 @[extern "lean_opengl_glbufferdata_floats"]
 constant glBufferDataFloats : BufferTarget → FloatArray → BufferFrequency → BufferAccessPattern → IO Unit
 
+inductive BufferStorageFlags
+| GLDynamicStorage
+| GLMapRead
+| GLMapWrite
+| GLMapPersistent
+| GLMapCoherent
+| GLClientStorage
+
+-- glNamedBufferStorage specifically for a FloatArray, put into buffer as GLfloat
+@[extern "lean_opengl_glnamedbufferstorage_floats"]
+constant glNamedBufferStorage_Floats : GLBufferObject → FloatArray → List BufferStorageFlags → IO Unit
+
+-- glNamedBufferStorage specifically for a FloatArray, stored as GLdouble
+@[extern "lean_opengl_glnamedbufferstorage_doubles"]
+constant glNamedBufferStorage_Doubles : GLBufferObject → FloatArray → List BufferStorageFlags → IO Unit
+
+@[extern "lean_opengl_glNamedBufferStorage_uint32"]
+constant glNamedBufferStorage_UInt32 : GLBufferObject → Array UInt32 → List BufferStorageFlags → IO Unit
+
+@[extern "lean_opengl_glnamedbufferstorage_bytes"]
+constant glNamedBufferStorage_Bytes : GLBufferObject → ByteArray → List BufferStorageFlags → IO Unit
 
 inductive ShaderType
 | ComputeShader
@@ -141,6 +162,9 @@ instance : ToString GLVertexArrayObject where
 @[extern "lean_opengl_genvertexarrays"]
 constant glGenVertexArrays : UInt32 → IO (Array GLVertexArrayObject)
 
+@[extern "lean_opengl_createvertexarrays"]
+constant glCreateVertexArrays : UInt32 → IO (Array GLVertexArrayObject)
+
 @[extern "lean_opengl_bindvertexarray"]
 constant glBindVertexArray : GLVertexArrayObject → IO Unit
 
@@ -152,11 +176,20 @@ constant glDeleteVertexArrays : Array GLVertexArrayObject → IO Unit
 @[extern "lean_opengl_glbindvertexbuffer"]
 constant glBindVertexBuffer : (bindingIndex : UInt64) → GLBufferObject → (offset : UInt64) → (stride : UInt64) → IO Unit
 
+@[extern "lean_opengl_glvertexarrayvertexbuffer"]
+constant glVertexArrayVertexBuffer : GLVertexArrayObject → (bindingIndex : UInt64) → GLBufferObject → (offset : UInt64) → (stride : UInt64) → IO Unit
+
 @[extern "lean_opengl_enablevertexattribarray"]
 constant glEnableVertexAttribArray : (attribIndex : UInt64) → IO Unit
 
 @[extern "lean_opengl_disablevertexattribarray"]
 constant glDisableVertexAttribArray : (attribIndex : UInt64) → IO Unit
+
+@[extern "lean_opengl_enablevertexarrayattrib"]
+constant glEnableVertexArrayAttrib : GLVertexArrayObject → (attribIndex : UInt64) → IO Unit
+
+@[extern "lean_opengl_disablevertexarrayattrib"]
+constant glDisableVertexArrayAttrib : GLVertexArrayObject → (attribIndex : UInt64) → IO Unit
 
 inductive GLDataType where
 | GLByte
@@ -171,8 +204,14 @@ inductive GLDataType where
 @[extern "lean_opengl_vertexattribformat"]
 constant glVertexAttribFormat : (attribIndex : UInt64) → (size : UInt64) → GLDataType → (normalized : Bool) → (relativeOffset : UInt64) → IO Unit
 
+@[extern "lean_opengl_vertexarrayattribformat"]
+constant glVertexArrayAttribFormat : GLVertexArrayObject → (attribIndex : UInt64) → (size : UInt64) → GLDataType → (normalized : Bool) → (relativeOffset : UInt64) → IO Unit
+
 @[extern "lean_opengl_vertexattribbinding"]
 constant glVertexAttribBinding : (attribIndex : UInt64) → (bindingIndex : UInt64) → IO Unit
+
+@[extern "lean_opengl_vertexarrayattribbinding"]
+constant glVertexArrayAttribBinding : GLVertexArrayObject → (attribIndex : UInt64) → (bindingIndex : UInt64) → IO Unit
 
 inductive GLDrawMode where
 | GLPoints

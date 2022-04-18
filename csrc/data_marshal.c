@@ -40,3 +40,15 @@ extern lean_object *lean_mk_packptr(void *someptr)
     }
 }
 
+
+lean_object *lean_convert_uint32_array(unsigned int count, const uint32_t *cArray)
+{
+    lean_object *vaoArray = lean_alloc_array(count, count);
+    lean_object **leanVaoNames = lean_array_cptr(vaoArray);
+    for (int ix=0; ix < count; ix++) {
+        leanVaoNames[ix] = lean_box_uint32((uint32_t)cArray[ix]);
+    }
+    return vaoArray;
+}
+
+

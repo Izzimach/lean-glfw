@@ -92,3 +92,6 @@ static inline uint32_t lean_listlength(lean_obj_arg list) {
 
     return elementCount;
 }
+
+// convert a C array of uint32_t elements to a (newly-created) lean array
+lean_object *lean_convert_uint32_array(unsigned int count, const uint32_t *cArray);
